@@ -1,14 +1,37 @@
-import { Calendar, CheckCircle, XCircle, Clock, Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Calendar, CheckCircle, XCircle, Clock, Plus, Loader2 } from 'lucide-react';
 import { DataTable } from '../components/DataTable';
-import { mockLeaves, mockEmployees } from '../data/mockData';
-import { LeaveRequest } from '../types';
+import { api } from '../utils/api';
+import { LeaveRequest, Employee } from '../types';
 
 const LeaveManagement = () => {
+  const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [leavesData, employeeData] = await Promise.all([
+          api.getLeaves(),
+          api.getEmployees()
+        ]);
+        setLeaves(leavesData);
+        setEmployees(employeeData);
+      } catch (error) {
+        console.error('Failed to fetch leaves:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
   const columns = [
     {
       header: 'Employee',
       accessor: (l: LeaveRequest) => {
-        const emp = mockEmployees.find(e => e.id === l.employeeId);
+        const emp = employees.find(e => e.id === l.employeeId);
         return (
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-600 text-xs">
@@ -20,8 +43,8 @@ const LeaveManagement = () => {
       },
     },
     { header: 'Type', accessor: 'type' as keyof LeaveRequest },
-    { 
-      header: 'Duration', 
+    {
+      header: 'Duration',
       accessor: (l: LeaveRequest) => (
         <div>
           <p className="font-medium text-slate-700">{new Date(l.startDate).toLocaleDateString()} - {new Date(l.endDate).toLocaleDateString()}</p>
@@ -61,13 +84,13 @@ const LeaveManagement = () => {
   ];
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 md:p-8 space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Leave Management</h1>
           <p className="text-slate-500 font-medium">Manage leave categories, quotas and applications.</p>
         </div>
-        <button className="bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20">
+        <button className="bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20 w-full md:w-auto justify-center">
           <Plus className="w-5 h-5" />
           Set Leave Quota
         </button>
@@ -125,7 +148,13 @@ const LeaveManagement = () => {
 
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <h2 className="text-lg font-bold text-slate-900 mb-6">Leave Applications</h2>
-        <DataTable columns={columns} data={mockLeaves} />
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+          </div>
+        ) : (
+          <DataTable columns={columns} data={leaves} />
+        )}
       </div>
     </div>
   );

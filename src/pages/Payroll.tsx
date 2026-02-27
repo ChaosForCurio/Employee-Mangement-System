@@ -1,14 +1,37 @@
-import { Plus, Download, Filter, FileText, CreditCard } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Download, Filter, FileText, CreditCard, Loader2 } from 'lucide-react';
 import { DataTable } from '../components/DataTable';
-import { mockPayroll, mockEmployees } from '../data/mockData';
-import { PayrollRecord } from '../types';
+import { api } from '../utils/api';
+import { PayrollRecord, Employee } from '../types';
 
 const Payroll = () => {
+  const [payroll, setPayroll] = useState<PayrollRecord[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [payrollData, employeeData] = await Promise.all([
+          api.getPayroll(),
+          api.getEmployees()
+        ]);
+        setPayroll(payrollData);
+        setEmployees(employeeData);
+      } catch (error) {
+        console.error('Failed to fetch payroll:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
   const columns = [
     {
       header: 'Employee',
       accessor: (p: PayrollRecord) => {
-        const emp = mockEmployees.find(e => e.id === p.employeeId);
+        const emp = employees.find(e => e.id === p.employeeId);
         return (
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600 text-xs">
@@ -23,24 +46,24 @@ const Payroll = () => {
       },
     },
     { header: 'Month', accessor: 'month' as keyof PayrollRecord },
-    { 
-      header: 'Basic Salary', 
+    {
+      header: 'Basic Salary',
       accessor: (p: PayrollRecord) => `$${p.basicSalary.toLocaleString()}`
     },
-    { 
-      header: 'Bonus', 
+    {
+      header: 'Bonus',
       accessor: (p: PayrollRecord) => (
         <span className="text-emerald-600 font-medium">+${p.bonus}</span>
       )
     },
-    { 
-      header: 'Deductions', 
+    {
+      header: 'Deductions',
       accessor: (p: PayrollRecord) => (
         <span className="text-red-600 font-medium">-${p.deduction + p.loan + p.providentFund}</span>
       )
     },
-    { 
-      header: 'Net Salary', 
+    {
+      header: 'Net Salary',
       accessor: (p: PayrollRecord) => (
         <span className="font-bold text-slate-900">${p.netSalary.toLocaleString()}</span>
       )
@@ -48,9 +71,8 @@ const Payroll = () => {
     {
       header: 'Status',
       accessor: (p: PayrollRecord) => (
-        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-          p.status === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-        }`}>
+        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${p.status === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+          }`}>
           {p.status}
         </span>
       ),
@@ -67,7 +89,7 @@ const Payroll = () => {
   ];
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Payroll Management</h1>
@@ -98,7 +120,7 @@ const Payroll = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group">
           <div className="absolute right-[-10px] top-[-10px] w-24 h-24 bg-emerald-50 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
           <div className="relative z-10 space-y-4">
@@ -156,7 +178,13 @@ const Payroll = () => {
         <button className="text-blue-600 text-sm font-bold hover:underline">Download Report</button>
       </div>
 
-      <DataTable columns={columns} data={mockPayroll} />
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+        </div>
+      ) : (
+        <DataTable columns={columns} data={payroll} />
+      )}
     </div>
   );
 };

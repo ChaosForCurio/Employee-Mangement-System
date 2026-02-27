@@ -1,93 +1,41 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
-
-// Temporary mock pages until I create them
-const Dashboard = () => (
-  <div className="p-8 space-y-8">
-    <div className="flex flex-col gap-1">
-      <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-      <p className="text-slate-500 font-medium">Welcome back, John! Here's what's happening today.</p>
-    </div>
-    
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-slate-500">Total Employees</p>
-          <h3 className="text-3xl font-bold text-slate-900">128</h3>
-        </div>
-        <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-        </div>
-      </div>
-      
-      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-slate-500">Active Projects</p>
-          <h3 className="text-3xl font-bold text-slate-900">42</h3>
-        </div>
-        <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
-        </div>
-      </div>
-
-      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-slate-500">Pending Leave</p>
-          <h3 className="text-3xl font-bold text-slate-900">12</h3>
-        </div>
-        <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-        </div>
-      </div>
-
-      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-slate-500">Revenue</p>
-          <h3 className="text-3xl font-bold text-slate-900">$24.5k</h3>
-        </div>
-        <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-const Employees = () => <div className="p-8">Employees Page</div>;
-const Attendance = () => <div className="p-8">Attendance Page</div>;
-const Leave = () => <div className="p-8">Leave Management Page</div>;
-const Payroll = () => <div className="p-8">Payroll Page</div>;
-const Expenses = () => <div className="p-8">Expenses Page</div>;
-const Invoices = () => <div className="p-8">Invoices Page</div>;
-const Tasks = () => <div className="p-8">Tasks Page</div>;
-const Training = () => <div className="p-8">Training Page</div>;
-const Holidays = () => <div className="p-8">Holidays Page</div>;
-const Notices = () => <div className="p-8">Notice Board</div>;
-const TimeRequests = () => <div className="p-8">Time Change Requests</div>;
+import Dashboard from './pages/Dashboard';
+import Employees from './pages/Employees';
+import Attendance from './pages/Attendance';
+import LeaveManagement from './pages/LeaveManagement';
+import Payroll from './pages/Payroll';
+import { ExpensesPage as Expenses, InvoicesPage as Invoices, TasksPage as Tasks } from './pages/Operations';
+import { AwardsPage as Training, HolidaysPage as Holidays, NoticeBoardPage as Notices, TimeChangeRequestsPage as TimeRequests } from './pages/MiscPages';
 
 function App() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
     <Router>
       <div className="min-h-screen bg-slate-50">
-        <Sidebar />
-        <Topbar />
-        <main className="ml-64 bg-slate-50">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/employees" element={<Employees />} />
-            <Route path="/attendance" element={<Attendance />} />
-            <Route path="/leave" element={<Leave />} />
-            <Route path="/payroll" element={<Payroll />} />
-            <Route path="/expenses" element={<Expenses />} />
-            <Route path="/invoices" element={<Invoices />} />
-            <Route path="/tasks" element={<Tasks />} />
-            <Route path="/training" element={<Training />} />
-            <Route path="/holidays" element={<Holidays />} />
-            <Route path="/notices" element={<Notices />} />
-            <Route path="/time-requests" element={<TimeRequests />} />
-          </Routes>
-        </main>
+        <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+        <div className={`transition-all duration-300 ${isSidebarOpen ? 'lg:ml-64' : 'ml-0 lg:ml-64'}`}>
+          <Topbar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+          <main className="bg-slate-50">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/employees" element={<Employees />} />
+              <Route path="/attendance" element={<Attendance />} />
+              <Route path="/leave" element={<LeaveManagement />} />
+              <Route path="/payroll" element={<Payroll />} />
+              <Route path="/expenses" element={<Expenses />} />
+              <Route path="/invoices" element={<Invoices />} />
+              <Route path="/tasks" element={<Tasks />} />
+              <Route path="/training" element={<Training />} />
+              <Route path="/holidays" element={<Holidays />} />
+              <Route path="/notices" element={<Notices />} />
+              <Route path="/time-requests" element={<TimeRequests />} />
+            </Routes>
+          </main>
+        </div>
       </div>
     </Router>
   );

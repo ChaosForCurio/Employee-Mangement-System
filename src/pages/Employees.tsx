@@ -1,15 +1,41 @@
-import { Plus, Search, Filter, MoreVertical, Edit2, Trash2, ShieldAlert } from 'lucide-react';
+import { Plus, Search, Filter, Edit2, Trash2, ShieldAlert } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { DataTable } from '../components/DataTable';
-import { mockEmployees } from '../data/mockData';
 import { Employee } from '../types';
+import { api } from '../utils/api';
 
 const Employees = () => {
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadEmployees();
+  }, []);
+
+  const loadEmployees = async () => {
+    try {
+      const data = await api.getEmployees();
+      // Map PHP fields to Frontend fields if necessary
+      const mappedData = data.map((emp: any) => ({
+        ...emp,
+        joinDate: emp.joined_at,
+        designation: emp.role, // Assuming role and designation are similar
+        status: 'Active', // Default status for now
+      }));
+      setEmployees(mappedData);
+    } catch (error) {
+      console.error('Failed to load employees:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const columns = [
     {
       header: 'Employee',
       accessor: (emp: Employee) => (
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600">
+          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600">
             {emp.name.charAt(0)}
           </div>
           <div>
@@ -23,27 +49,34 @@ const Employees = () => {
     { header: 'Designation', accessor: 'designation' as keyof Employee },
     {
       header: 'Join Date',
-      accessor: (emp: Employee) => new Date(emp.joinDate).toLocaleDateString(),
+      accessor: (emp: Employee) => emp.joinDate ? new Date(emp.joinDate).toLocaleDateString() : 'N/A',
     },
     {
       header: 'Status',
       accessor: (emp: Employee) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-          emp.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 
+        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${emp.status === 'Active' ? 'bg-emerald-100 text-emerald-700' :
           emp.status === 'Blocked' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'
-        }`}>
+          }`}>
           {emp.status}
         </span>
       ),
     },
     {
       header: 'Actions',
-      accessor: () => (
+      accessor: (emp: Employee) => (
         <div className="flex items-center gap-2">
           <button className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-blue-600 transition-colors">
             <Edit2 className="w-4 h-4" />
           </button>
-          <button className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-red-600 transition-colors">
+          <button
+            onClick={async () => {
+              if (confirm('Are you sure you want to delete this employee?')) {
+                await api.deleteEmployee(Number(emp.id));
+                loadEmployees();
+              }
+            }}
+            className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-red-600 transition-colors"
+          >
             <Trash2 className="w-4 h-4" />
           </button>
           <button className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600 transition-colors">
@@ -55,7 +88,7 @@ const Employees = () => {
   ];
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Employee Management</h1>
@@ -70,15 +103,15 @@ const Employees = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
           <p className="text-sm font-medium text-slate-500">Total Employees</p>
-          <p className="text-2xl font-bold text-slate-900 mt-1">1,248</p>
+          <p className="text-2xl font-bold text-slate-900 mt-1">{employees.length.toLocaleString()}</p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
           <p className="text-sm font-medium text-slate-500">Active Now</p>
-          <p className="text-2xl font-bold text-emerald-600 mt-1">1,120</p>
+          <p className="text-2xl font-bold text-emerald-600 mt-1">{employees.filter(e => e.status === 'Active').length}</p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
           <p className="text-sm font-medium text-slate-500">On Leave</p>
-          <p className="text-2xl font-bold text-orange-600 mt-1">24</p>
+          <p className="text-2xl font-bold text-orange-600 mt-1">0</p>
         </div>
       </div>
 
@@ -97,9 +130,16 @@ const Employees = () => {
         </button>
       </div>
 
-      <DataTable columns={columns} data={mockEmployees} />
+      {loading ? (
+        <div className="flex items-center justify-center p-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      ) : (
+        <DataTable columns={columns} data={employees} />
+      )}
     </div>
   );
 };
 
 export default Employees;
+

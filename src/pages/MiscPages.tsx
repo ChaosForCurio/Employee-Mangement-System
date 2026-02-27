@@ -1,7 +1,7 @@
 import { Award, Bell, Briefcase, ClipboardList, Info, Star } from 'lucide-react';
 
 export const AwardsPage = () => (
-  <div className="p-8 space-y-6">
+  <div className="p-4 md:p-8 space-y-6">
     <div className="flex items-center justify-between">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Awards & Training</h1>
@@ -52,7 +52,7 @@ export const AwardsPage = () => (
 );
 
 export const NoticeBoardPage = () => (
-  <div className="p-8 space-y-6">
+  <div className="p-4 md:p-8 space-y-6">
     <h1 className="text-2xl font-bold text-slate-900">Notice Board</h1>
     <div className="grid grid-cols-1 gap-4">
       {[1, 2, 3].map(i => (
@@ -76,7 +76,7 @@ export const NoticeBoardPage = () => (
 );
 
 export const HolidaysPage = () => (
-  <div className="p-8 space-y-6">
+  <div className="p-4 md:p-8 space-y-6">
     <h1 className="text-2xl font-bold text-slate-900">Holiday Calendar 2023</h1>
     <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
       <div className="divide-y divide-slate-100">
@@ -106,7 +106,7 @@ export const HolidaysPage = () => (
 );
 
 export const TimeChangeRequestsPage = () => (
-  <div className="p-8 space-y-6">
+  <div className="p-4 md:p-8 space-y-6">
     <h1 className="text-2xl font-bold text-slate-900">Time Change Requests</h1>
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
       <div className="p-6 border-b border-slate-100">
