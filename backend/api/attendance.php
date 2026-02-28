@@ -61,4 +61,43 @@ switch ($method) {
             echo json_encode(array("message" => "Incomplete data."));
         }
         break;
+
+    case 'PATCH':
+        $data = json_decode(file_get_contents("php://input"));
+        if (!empty($data->id)) {
+            $attendance->id = $data->id;
+            $attendance->status = $data->status ?? null;
+            $attendance->check_in = $data->check_in ?? null;
+            $attendance->check_out = $data->check_out ?? null;
+
+            if ($attendance->update()) {
+                http_response_code(200);
+                echo json_encode(array("message" => "Attendance updated."));
+            } else {
+                http_response_code(503);
+                echo json_encode(array("message" => "Unable to update attendance."));
+            }
+        } else {
+            http_response_code(400);
+            echo json_encode(array("message" => "Missing ID."));
+        }
+        break;
+
+    case 'DELETE':
+        $data = json_decode(file_get_contents("php://input"));
+        $id = $data->id ?? ($_GET['id'] ?? null);
+        if (!empty($id)) {
+            $attendance->id = $id;
+            if ($attendance->delete()) {
+                http_response_code(200);
+                echo json_encode(array("message" => "Attendance deleted."));
+            } else {
+                http_response_code(503);
+                echo json_encode(array("message" => "Unable to delete attendance."));
+            }
+        } else {
+            http_response_code(400);
+            echo json_encode(array("message" => "Missing ID."));
+        }
+        break;
 }

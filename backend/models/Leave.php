@@ -61,6 +61,31 @@ class Leave {
         return false;
     }
 
+    public function update() {
+        $query = "UPDATE " . $this->table_name . " 
+                  SET start_date = :start_date, end_date = :end_date, 
+                      type = :type, status = :status, reason = :reason 
+                  WHERE id = :id";
+        
+        $stmt = $this->conn->prepare($query);
+
+        $this->start_date = htmlspecialchars(strip_tags($this->start_date));
+        $this->end_date = htmlspecialchars(strip_tags($this->end_date));
+        $this->type = htmlspecialchars(strip_tags($this->type));
+        $this->status = htmlspecialchars(strip_tags($this->status));
+        $this->reason = htmlspecialchars(strip_tags($this->reason));
+        $this->id = htmlspecialchars(strip_tags($this->id));
+
+        $stmt->bindParam(":start_date", $this->start_date);
+        $stmt->bindParam(":end_date", $this->end_date);
+        $stmt->bindParam(":type", $this->type);
+        $stmt->bindParam(":status", $this->status);
+        $stmt->bindParam(":reason", $this->reason);
+        $stmt->bindParam(":id", $this->id);
+
+        return $stmt->execute();
+    }
+
     public function updateStatus() {
         $query = "UPDATE " . $this->table_name . " SET status = :status WHERE id = :id";
         $stmt = $this->conn->prepare($query);
@@ -70,5 +95,13 @@ class Leave {
             return true;
         }
         return false;
+    }
+
+    public function delete() {
+        $query = "DELETE FROM " . $this->table_name . " WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $this->id = htmlspecialchars(strip_tags($this->id));
+        $stmt->bindParam(":id", $this->id);
+        return $stmt->execute();
     }
 }

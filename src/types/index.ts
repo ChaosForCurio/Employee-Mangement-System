@@ -12,34 +12,38 @@ export interface Employee {
 
 export interface Attendance {
   id: string;
-  employeeId: string;
+  employee_id: string;
   date: string;
-  clockIn: string;
-  clockOut: string;
-  status: 'Present' | 'Absent' | 'Late' | 'On Leave';
+  clock_in: string;
+  clock_out: string;
+  status: 'Present' | 'Absent' | 'Late' | 'On Leave' | 'Half Day';
 }
 
 export interface LeaveRequest {
   id: string;
-  employeeId: string;
+  employee_id: string;
+  employee_name?: string;
   type: string;
-  startDate: string;
-  endDate: string;
+  start_date: string;
+  end_date: string;
   reason: string;
   status: 'Pending' | 'Approved' | 'Rejected';
+  applied_at?: string;
 }
 
 export interface PayrollRecord {
   id: string;
-  employeeId: string;
+  employee_id: string;
+  employee_name?: string;
+  department?: string;
   month: string;
-  basicSalary: number;
-  bonus: number;
-  deduction: number;
-  loan: number;
-  providentFund: number;
-  netSalary: number;
-  status: 'Paid' | 'Pending';
+  year: string;
+  base_salary: number;
+  bonuses: number;
+  deductions: number;
+  net_salary: number;
+  status: 'Paid' | 'Unpaid';
+  processed_at?: string;
 }
 
 export interface Expense {

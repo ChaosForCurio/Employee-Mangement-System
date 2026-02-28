@@ -1,26 +1,48 @@
+import { useState, useEffect } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area
 } from 'recharts';
-import { Users, CreditCard, Calendar, Clock, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-
-const data = [
-  { name: 'Jan', revenue: 4000, expenses: 2400 },
-  { name: 'Feb', revenue: 3000, expenses: 1398 },
-  { name: 'Mar', revenue: 2000, expenses: 9800 },
-  { name: 'Apr', revenue: 2780, expenses: 3908 },
-  { name: 'May', revenue: 1890, expenses: 4800 },
-  { name: 'Jun', revenue: 2390, expenses: 3800 },
-];
-
-const attendanceData = [
-  { name: 'Mon', count: 120 },
-  { name: 'Tue', count: 125 },
-  { name: 'Wed', count: 118 },
-  { name: 'Thu', count: 122 },
-  { name: 'Fri', count: 110 },
-];
+import { Users, CreditCard, Calendar, Clock, ArrowUpRight, ArrowDownRight, AlertCircle, Loader2 } from 'lucide-react';
+import { api } from '../utils/api';
 
 const Dashboard = () => {
+  const [metrics, setMetrics] = useState({ employees: 0, attendance: [] as any[], loading: true, error: null as string | null });
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const [empData, attData] = await Promise.all([
+          api.getEmployees(),
+          api.getAttendance()
+        ]);
+
+        // Group attendance by day for the chart
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const currentWeek = attData.reduce((acc: any, curr: any) => {
+          const d = new Date(curr.date).getDay();
+          acc[days[d]] = (acc[days[d]] || 0) + 1;
+          return acc;
+        }, {});
+
+        const chartData = days.slice(1, 6).map(d => ({ name: d, count: currentWeek[d] || 0 }));
+
+        setMetrics({ employees: empData.length, attendance: chartData, loading: false, error: null });
+      } catch (err: any) {
+        setMetrics(m => ({ ...m, loading: false, error: 'Database unavailable' }));
+      }
+    }
+    fetchDashboard();
+  }, []);
+
+  const data = [
+    { name: 'Jan', revenue: 4000, expenses: 2400 },
+    { name: 'Feb', revenue: 3000, expenses: 1398 },
+    { name: 'Mar', revenue: 2000, expenses: 9800 },
+    { name: 'Apr', revenue: 2780, expenses: 3908 },
+    { name: 'May', revenue: 1890, expenses: 4800 },
+    { name: 'Jun', revenue: 2390, expenses: 3800 },
+  ];
+
   return (
     <div className="p-4 md:p-8 space-y-8">
       <div className="flex flex-col gap-1">
@@ -28,12 +50,21 @@ const Dashboard = () => {
         <p className="text-slate-500 font-medium">System performance and workforce analytics for Nov 2023.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Total Employees" value="128" change="+4.5%" trend="up" icon={Users} color="blue" />
-        <StatCard title="Monthly Revenue" value="$45,200" change="+12.2%" trend="up" icon={CreditCard} color="emerald" />
-        <StatCard title="Total Expenses" value="$12,850" change="-2.4%" trend="down" icon={Calendar} color="amber" />
-        <StatCard title="Pending Tasks" value="34" change="+8" trend="up" icon={Clock} color="purple" />
-      </div>
+      {metrics.loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 text-blue-500 animate-spin" /></div>
+      ) : metrics.error ? (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md mb-6 flex items-center">
+          <AlertCircle className="w-6 h-6 text-red-500 mr-3" />
+          <p className="text-red-700 font-medium">Dashboard metrics failed to load: {metrics.error}</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard title="Total Employees" value={metrics.employees.toString()} change="+4.5%" trend="up" icon={Users} color="blue" />
+          <StatCard title="Monthly Revenue" value="$45,200" change="+12.2%" trend="up" icon={CreditCard} color="emerald" />
+          <StatCard title="Total Expenses" value="$12,850" change="-2.4%" trend="down" icon={Calendar} color="amber" />
+          <StatCard title="Pending Tasks" value="34" change="+8" trend="up" icon={Clock} color="purple" />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
@@ -43,8 +74,8 @@ const Dashboard = () => {
               <option>Last 6 Months</option>
             </select>
           </div>
-          <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[320px] w-full mt-4">
+            <ResponsiveContainer width="100%" height={320}>
               <AreaChart data={data}>
                 <defs>
                   <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
@@ -73,9 +104,9 @@ const Dashboard = () => {
               </span>
             </div>
           </div>
-          <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={attendanceData}>
+          <div className="h-[320px] w-full mt-4">
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart data={metrics.attendance.length > 0 ? metrics.attendance : [{ name: 'Mon', count: 0 }]}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />

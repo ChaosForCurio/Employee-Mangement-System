@@ -78,16 +78,53 @@ switch ($method) {
 
     case 'PATCH':
         $data = json_decode(file_get_contents("php://input"));
-        if (!empty($data->id) && !empty($data->status)) {
-            if ($payroll->updateStatus($data->id, $data->status)) {
-                echo json_encode(array("message" => "Payroll status updated."));
+        if (!empty($data->id)) {
+            $payroll->id = $data->id;
+            
+            // If only status is provided, use updateStatus
+            if (isset($data->status) && count((array)$data) === 2) {
+                if ($payroll->updateStatus($data->id, $data->status)) {
+                    echo json_encode(array("message" => "Payroll status updated."));
+                } else {
+                    http_response_code(503);
+                    echo json_encode(array("message" => "Unable to update status."));
+                }
             } else {
-                http_response_code(503);
-                echo json_encode(array("message" => "Unable to update status."));
+                // Full update
+                $payroll->base_salary = $data->base_salary ?? 0;
+                $payroll->bonuses = $data->bonuses ?? 0;
+                $payroll->deductions = $data->deductions ?? 0;
+                $payroll->status = $data->status ?? 'Unpaid';
+
+                if ($payroll->update()) {
+                    http_response_code(200);
+                    echo json_encode(array("message" => "Payroll record updated."));
+                } else {
+                    http_response_code(503);
+                    echo json_encode(array("message" => "Unable to update payroll."));
+                }
             }
         } else {
             http_response_code(400);
-            echo json_encode(array("message" => "Incomplete data."));
+            echo json_encode(array("message" => "Missing ID."));
+        }
+        break;
+
+    case 'DELETE':
+        $data = json_decode(file_get_contents("php://input"));
+        $id = $data->id ?? ($_GET['id'] ?? null);
+        if (!empty($id)) {
+            $payroll->id = $id;
+            if ($payroll->delete()) {
+                http_response_code(200);
+                echo json_encode(array("message" => "Payroll record deleted."));
+            } else {
+                http_response_code(503);
+                echo json_encode(array("message" => "Unable to delete payroll."));
+            }
+        } else {
+            http_response_code(400);
+            echo json_encode(array("message" => "Missing ID."));
         }
         break;
 

@@ -1,12 +1,16 @@
 import { Plus, Search, Filter, Edit2, Trash2, ShieldAlert } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { DataTable } from '../components/DataTable';
+import { EmployeeModal } from '../components/EmployeeModal';
 import { Employee } from '../types';
 import { api } from '../utils/api';
 
 const Employees = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
   useEffect(() => {
     loadEmployees();
@@ -14,6 +18,8 @@ const Employees = () => {
 
   const loadEmployees = async () => {
     try {
+      setError(null);
+      setLoading(true);
       const data = await api.getEmployees();
       // Map PHP fields to Frontend fields if necessary
       const mappedData = data.map((emp: any) => ({
@@ -23,8 +29,9 @@ const Employees = () => {
         status: 'Active', // Default status for now
       }));
       setEmployees(mappedData);
-    } catch (error) {
-      console.error('Failed to load employees:', error);
+    } catch (err: any) {
+      console.error('Failed to load employees:', err);
+      setError(err.message || 'Failed to load employees. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -65,14 +72,24 @@ const Employees = () => {
       header: 'Actions',
       accessor: (emp: Employee) => (
         <div className="flex items-center gap-2">
-          <button className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-blue-600 transition-colors">
+          <button
+            onClick={() => {
+              setEditingEmployee(emp);
+              setIsModalOpen(true);
+            }}
+            className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-blue-600 transition-colors"
+          >
             <Edit2 className="w-4 h-4" />
           </button>
           <button
             onClick={async () => {
               if (confirm('Are you sure you want to delete this employee?')) {
-                await api.deleteEmployee(Number(emp.id));
-                loadEmployees();
+                try {
+                  await api.deleteEmployee(Number(emp.id));
+                  loadEmployees();
+                } catch (err: any) {
+                  alert(err.message || 'Failed to delete employee');
+                }
               }
             }}
             className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-red-600 transition-colors"
@@ -94,7 +111,13 @@ const Employees = () => {
           <h1 className="text-2xl font-bold text-slate-900">Employee Management</h1>
           <p className="text-slate-500 font-medium">Manage your workforce, roles and permissions.</p>
         </div>
-        <button className="bg-blue-600 text-white px-4 py-2.5 rounded-xl font-semibold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 active:scale-95">
+        <button
+          onClick={() => {
+            setEditingEmployee(null);
+            setIsModalOpen(true);
+          }}
+          className="bg-blue-600 text-white px-4 py-2.5 rounded-xl font-semibold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 active:scale-95"
+        >
           <Plus className="w-5 h-5" />
           Add Employee
         </button>
@@ -134,9 +157,35 @@ const Employees = () => {
         <div className="flex items-center justify-center p-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
+      ) : error ? (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md mt-6">
+          <div className="flex items-center">
+            <ShieldAlert className="w-6 h-6 text-red-500 mr-3" />
+            <p className="text-red-700 font-medium">{error}</p>
+          </div>
+          <button
+            onClick={loadEmployees}
+            className="mt-3 text-sm font-semibold text-red-700 hover:text-red-800 underline">
+            Retry Connection
+          </button>
+        </div>
       ) : (
         <DataTable columns={columns} data={employees} />
       )}
+
+      <EmployeeModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        employee={editingEmployee}
+        onSave={async (data) => {
+          if (editingEmployee) {
+            await api.updateEmployee(Number(editingEmployee.id), data);
+          } else {
+            await api.addEmployee(data);
+          }
+          await loadEmployees();
+        }}
+      />
     </div>
   );
 };

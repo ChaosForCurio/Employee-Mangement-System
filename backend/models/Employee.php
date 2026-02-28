@@ -63,4 +63,32 @@ class Employee {
         }
         return false;
     }
+
+    public function update() {
+        $query = "UPDATE " . $this->table_name . " 
+                  SET name = :name, email = :email, role = :role, 
+                      department = :department, salary = :salary 
+                  WHERE id = :id";
+        
+        $stmt = $this->conn->prepare($query);
+
+        $this->name = htmlspecialchars(strip_tags($this->name));
+        $this->email = htmlspecialchars(strip_tags($this->email));
+        $this->role = htmlspecialchars(strip_tags($this->role));
+        $this->department = htmlspecialchars(strip_tags($this->department));
+        $this->salary = htmlspecialchars(strip_tags($this->salary));
+        $this->id = htmlspecialchars(strip_tags($this->id));
+
+        $stmt->bindParam(":name", $this->name);
+        $stmt->bindParam(":email", $this->email);
+        $stmt->bindParam(":role", $this->role);
+        $stmt->bindParam(":department", $this->department);
+        $stmt->bindParam(":salary", $this->salary);
+        $stmt->bindParam(":id", $this->id);
+
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
 }

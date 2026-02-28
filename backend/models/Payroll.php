@@ -59,4 +59,29 @@ class Payroll {
         $stmt = $this->conn->prepare($query);
         return $stmt->execute([$status, $id]);
     }
+
+    public function update() {
+        $query = "UPDATE " . $this->table_name . " 
+                  SET base_salary = ?, bonuses = ?, deductions = ?, net_salary = ?, status = ? 
+                  WHERE id = ?";
+        
+        $stmt = $this->conn->prepare($query);
+
+        $this->net_salary = $this->base_salary + $this->bonuses - $this->deductions;
+
+        return $stmt->execute([
+            $this->base_salary,
+            $this->bonuses,
+            $this->deductions,
+            $this->net_salary,
+            $this->status,
+            $this->id
+        ]);
+    }
+
+    public function delete() {
+        $query = "DELETE FROM " . $this->table_name . " WHERE id = ?";
+        $stmt = $this->conn->prepare($query);
+        return $stmt->execute([$this->id]);
+    }
 }

@@ -3,7 +3,7 @@ import {
   MoreHorizontal, Download, ArrowUpRight, Clock, User
 } from 'lucide-react';
 import { DataTable } from '../components/DataTable';
-import { mockExpenses, mockInvoices, mockTasks } from '../data/mockData';
+
 import { Expense, Invoice, Task } from '../types';
 
 export const ExpensesPage = () => {
@@ -62,7 +62,7 @@ export const ExpensesPage = () => {
         </div>
       </div>
 
-      <DataTable columns={columns} data={mockExpenses} />
+      <DataTable columns={columns} data={[]} />
     </div>
   );
 };
@@ -81,7 +81,7 @@ export const InvoicesPage = () => {
       header: 'Status',
       accessor: (i: Invoice) => (
         <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${i.status === 'Paid' ? 'bg-emerald-100 text-emerald-700' :
-            i.status === 'Overdue' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+          i.status === 'Overdue' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
           }`}>
           {i.status}
         </span>
@@ -110,7 +110,7 @@ export const InvoicesPage = () => {
         </button>
       </div>
 
-      <DataTable columns={columns} data={mockInvoices} />
+      <DataTable columns={columns} data={[]} />
     </div>
   );
 };
@@ -135,16 +135,16 @@ export const TasksPage = () => {
             <div className="flex items-center justify-between px-2">
               <h3 className="font-bold text-slate-900">{status}</h3>
               <span className="w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center text-xs font-bold text-slate-600">
-                {mockTasks.filter(t => t.status === status).length}
+                {0}
               </span>
             </div>
 
             <div className="space-y-4">
-              {mockTasks.filter(t => t.status === status).map((task) => (
+              {({} as any[]).map((task) => (
                 <div key={task.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow group">
                   <div className="flex justify-between items-start mb-3">
                     <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${task.priority === 'High' ? 'bg-red-100 text-red-600' :
-                        task.priority === 'Medium' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'
+                      task.priority === 'Medium' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'
                       }`}>
                       {task.priority}
                     </span>

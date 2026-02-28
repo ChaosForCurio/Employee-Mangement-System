@@ -65,19 +65,56 @@ switch ($method) {
 
     case 'PATCH':
         $data = json_decode(file_get_contents("php://input"));
-        if (!empty($data->id) && !empty($data->status)) {
+        if (!empty($data->id)) {
             $leave->id = $data->id;
-            $leave->status = $data->status;
-            if ($leave->updateStatus()) {
-                http_response_code(200);
-                echo json_encode(array("message" => "Leave status updated."));
+            
+            // If only status is provided, use updateStatus
+            if (isset($data->status) && count((array)$data) === 2) {
+                $leave->status = $data->status;
+                if ($leave->updateStatus()) {
+                    http_response_code(200);
+                    echo json_encode(array("message" => "Leave status updated."));
+                } else {
+                    http_response_code(503);
+                    echo json_encode(array("message" => "Unable to update status."));
+                }
             } else {
-                http_response_code(503);
-                echo json_encode(array("message" => "Unable to update status."));
+                // Full update
+                $leave->start_date = $data->start_date ?? null;
+                $leave->end_date = $data->end_date ?? null;
+                $leave->type = $data->type ?? null;
+                $leave->status = $data->status ?? 'Pending';
+                $leave->reason = $data->reason ?? null;
+
+                if ($leave->update()) {
+                    http_response_code(200);
+                    echo json_encode(array("message" => "Leave request updated."));
+                } else {
+                    http_response_code(503);
+                    echo json_encode(array("message" => "Unable to update leave request."));
+                }
             }
         } else {
             http_response_code(400);
-            echo json_encode(array("message" => "Missing data."));
+            echo json_encode(array("message" => "Missing ID."));
+        }
+        break;
+
+    case 'DELETE':
+        $data = json_decode(file_get_contents("php://input"));
+        $id = $data->id ?? ($_GET['id'] ?? null);
+        if (!empty($id)) {
+            $leave->id = $id;
+            if ($leave->delete()) {
+                http_response_code(200);
+                echo json_encode(array("message" => "Leave request deleted."));
+            } else {
+                http_response_code(503);
+                echo json_encode(array("message" => "Unable to delete leave request."));
+            }
+        } else {
+            http_response_code(400);
+            echo json_encode(array("message" => "Missing ID."));
         }
         break;
 }

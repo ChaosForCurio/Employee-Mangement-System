@@ -63,6 +63,30 @@ switch ($method) {
         }
         break;
 
+    case 'PATCH':
+    case 'PUT':
+        $data = json_decode(file_get_contents("php://input"));
+        if (!empty($data->id) && !empty($data->name) && !empty($data->email) && !empty($data->role)) {
+            $employee->id = $data->id;
+            $employee->name = $data->name;
+            $employee->email = $data->email;
+            $employee->role = $data->role;
+            $employee->department = $data->department ?? 'General';
+            $employee->salary = $data->salary ?? 0;
+
+            if ($employee->update()) {
+                http_response_code(200);
+                echo json_encode(array("message" => "Employee updated."));
+            } else {
+                http_response_code(503);
+                echo json_encode(array("message" => "Unable to update employee."));
+            }
+        } else {
+            http_response_code(400);
+            echo json_encode(array("message" => "Incomplete data."));
+        }
+        break;
+
     case 'DELETE':
         $id = isset($_GET['id']) ? $_GET['id'] : null;
         if ($id) {

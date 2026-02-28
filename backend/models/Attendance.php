@@ -58,4 +58,32 @@ class Attendance {
         }
         return false;
     }
+
+    public function update() {
+        $query = "UPDATE " . $this->table_name . " 
+                  SET status = :status, check_in = :check_in, check_out = :check_out 
+                  WHERE id = :id";
+        
+        $stmt = $this->conn->prepare($query);
+
+        $this->status = htmlspecialchars(strip_tags($this->status));
+        $this->check_in = htmlspecialchars(strip_tags($this->check_in));
+        $this->check_out = $this->check_out ? htmlspecialchars(strip_tags($this->check_out)) : null;
+        $this->id = htmlspecialchars(strip_tags($this->id));
+
+        $stmt->bindParam(":status", $this->status);
+        $stmt->bindParam(":check_in", $this->check_in);
+        $stmt->bindParam(":check_out", $this->check_out);
+        $stmt->bindParam(":id", $this->id);
+
+        return $stmt->execute();
+    }
+
+    public function delete() {
+        $query = "DELETE FROM " . $this->table_name . " WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $this->id = htmlspecialchars(strip_tags($this->id));
+        $stmt->bindParam(":id", $this->id);
+        return $stmt->execute();
+    }
 }
