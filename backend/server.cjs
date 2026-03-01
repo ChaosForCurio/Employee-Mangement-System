@@ -6,12 +6,19 @@ require('dotenv').config({ path: '.env.local' });
 const app = express();
 const port = 8000;
 
-// Clean up Neon DB URL
-const dbUrl = process.env.NEON_DB_URL.replace(/^psql '/, '').replace(/'$/, '');
+// Clean up Neon DB URL (handles "psql 'url'", "psql url", or just "url")
+const rawDbUrl = process.env.NEON_DB_URL || '';
+const dbUrl = rawDbUrl.replace(/^psql\s+['"]?/, '').replace(/['"]?$/, '').trim();
 
 const pool = new Pool({
     connectionString: dbUrl,
     ssl: { rejectUnauthorized: false }
+});
+
+// Log pool errors
+pool.on('error', (err) => {
+    console.error('Unexpected error on idle client', err);
+    process.exit(-1);
 });
 
 app.use(cors());
